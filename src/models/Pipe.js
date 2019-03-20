@@ -8,22 +8,26 @@ import {
 } from "../configs";
 
 export default class Pipe {
-  constructor(context, height, space, is_bottom= false) {
+  constructor(context, space) {
     this.ctx = context;
-    this.x = CANVAS_WIDTH;
-    this.y = height ? CANVAS_HEIGHT - height : 0;
-    this.width = PIPE_WIDTH;
-    this.height =
-      height ||
-      MINIMUM_PIPE_HEIGHT +
-        Math.random() * (CANVAS_HEIGHT - space - MINIMUM_PIPE_HEIGHT * 2);
     this.passed = false;
-    this.is_bottom = is_bottom;
+    this.x = CANVAS_WIDTH;
+    this.space_start =
+      MINIMUM_PIPE_HEIGHT +
+      Math.random() * (CANVAS_HEIGHT - space - MINIMUM_PIPE_HEIGHT * 2);
+    this.space_end = this.space_start + space;
+    this.bottom_pipe_height = CANVAS_HEIGHT - this.space_end;
   }
 
   draw() {
     this.ctx.fillStyle = "#000";
-    this.ctx.fillRect(this.x, this.y, this.width, this.height);
+    this.ctx.fillRect(this.x, 0, PIPE_WIDTH, this.space_start);
+    this.ctx.fillRect(
+      this.x,
+      this.space_end,
+      PIPE_WIDTH,
+      this.bottom_pipe_height
+    );
   }
 
   update() {
@@ -31,37 +35,23 @@ export default class Pipe {
   }
 
   is_dead() {
-    if (this.x + PIPE_WIDTH < 0) {
-      return true;
-    }
-    return false;
+    return this.x + PIPE_WIDTH < 0;
   }
 
   collision(bird) {
-    // const pipe_top_left = { x: this.x, y: this.y };
-    // const pipe_bottom_left = { x: this.x, y: this.y + this.height };
-    // const pipe_top_right = { x: this.x + this.width, y: this.y };
-    // const pipe_bottom_right = {
-    //   x: this.x + this.width,
-    //   y: this.y + this.height
-    // };
-    const bird_half_width = BIRD_WIDTH;
-    const bird_half_height = BIRD_HEIGHT;
-    if (
-      bird.x + bird_half_width >= this.x &&
-      bird.y + bird_half_height >= this.y &&
-      bird.x - bird_half_width <= this.x + this.width &&
-      bird.y - bird_half_height <= this.y + this.height
-    ) {
-      return true;
-    }
-    return false;
+    return (
+      bird.x + BIRD_WIDTH >= this.x &&
+      bird.x - BIRD_HEIGHT <= this.x + PIPE_WIDTH &&
+      ((bird.y + BIRD_HEIGHT >= 0 &&
+        bird.y - BIRD_HEIGHT <= this.space_start) ||
+        (bird.y + BIRD_HEIGHT >= this.space_end &&
+          bird.y - BIRD_HEIGHT <= CANVAS_HEIGHT))
+    );
   }
 
   pass(bird) {
-    if(this.is_bottom === false) return false;
-    const passed = bird.x > this.x;
-    if(passed !== this.passed){
+    const passed = bird.x > this.x + PIPE_WIDTH;
+    if (passed !== this.passed) {
       this.passed = passed;
       bird.addScore();
     }

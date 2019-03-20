@@ -12,9 +12,9 @@ export default class Game {
     this.frame_count = 0;
     this.space = INITIAL_PIPE_SPACE;
     this.loop = null;
-    this.pipes = this.generatePipes();
+    this.pipes = [];
     this.bird = this.generateBird();
-    
+    this.addPipe();
   }
 
   start() {
@@ -45,14 +45,9 @@ export default class Game {
     return bird;
   }
 
-  generatePipes() {
-    const first_pipe = new Pipe(this.ctx, null, this.space);
-    const second_pipe = new Pipe(
-      this.ctx,
-      CANVAS_HEIGHT - first_pipe.height - this.space,
-      this.space, true
-    );
-    return [first_pipe, second_pipe];
+  addPipe() {
+    const first_pipe = new Pipe(this.ctx, this.space);
+    this.pipes.push(first_pipe);
   }
 
   gameLoop = () => {
@@ -64,8 +59,7 @@ export default class Game {
     this.frame_count++;
     if (this.frame_count % 100 === 0) {
       this.frame_count = 0;
-      const pipes = this.generatePipes();
-      this.pipes.push(...pipes);
+      this.addPipe();
     }
     this.pipes = this.pipes.filter(pipe => !pipe.is_dead());
     this.pipes.forEach(pipe => {
